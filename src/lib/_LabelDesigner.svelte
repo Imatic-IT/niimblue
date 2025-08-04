@@ -46,7 +46,6 @@
   let csvData: string = "";
   let csvEnabled: boolean = false;
   let windowWidth: number = 0;
-  let isLoading = false;
 
   const undo = new UndoRedo();
   let undoState: UndoState = { undoDisabled: false, redoDisabled: false };
@@ -273,41 +272,8 @@
       height: labelProps.size.height,
     });
     fabricCanvas.setLabelProps(labelProps);
-    const params = new URLSearchParams(window.location.search);
-    const data = params.get("data");
-
-    if (data) {
-      const json = atob(data);
-      const config = JSON.parse(json);
-      const templateUrl = config.templateUrl;
-
-      if (templateUrl) {
-        isLoading = true;
-
-        fetch(templateUrl, {
-          headers: {
-            Authorization: "Basic " + btoa("niimTemplater:uSLR8SokEqoFYfX"),
-          },
-        })
-          .then((res) => res.json())
-          .then((template) => {
-            try {
-              onLoadRequested(template);
-            } catch (error) {
-              Toasts.error("Failed to load template.");
-            }
-          })
-          .catch((error) => {
-            Toasts.error("Failed to load template: " + error.message);
-          })
-          .finally(() => {
-            isLoading = false;
-          });
-      }
-    }
 
     const defaultTemplate = LocalStoragePersistence.loadDefaultTemplate();
-
     try {
       if (defaultTemplate !== null) {
         onLoadRequested(defaultTemplate);
@@ -412,15 +378,6 @@
 <svelte:window bind:innerWidth={windowWidth} on:keydown={onKeyDown} on:paste={onPaste} />
 
 <div class="image-editor">
-  {#if isLoading}
-    <div
-      class="position-fixed top-0 start-0 w-100 h-100 bg-white bg-opacity-85 d-flex flex-column justify-content-center align-items-center"
-      style="z-index: 1050;">
-      <span class="loader"></span>
-      <h1 class="mt-3 fs-10 fw-medium text-dark">Loading Imatic remote template...</h1>
-    </div>
-  {/if}
-
   <div class="row mb-3">
     <div class="col d-flex {windowWidth === 0 || labelProps.size.width < windowWidth ? 'justify-content-center' : ''}">
       <div class="canvas-wrapper print-start-{labelProps.printDirection}">
@@ -542,36 +499,4 @@
   .canvas-wrapper canvas {
     image-rendering: pixelated;
   }
-
-  .loader {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: inline-block;
-    border-top: 4px solid #fff;
-    border-right: 4px solid transparent;
-    box-sizing: border-box;
-    animation: rotation 1s linear infinite;
-  }
-  .loader::after {
-    content: "";
-    box-sizing: border-box;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border-bottom: 4px solid #ff3d00;
-    border-left: 4px solid transparent;
-  }
-  @keyframes rotation {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
 </style>
-
