@@ -1,61 +1,60 @@
-
 # IMATIC NIIMBLUE FEATURES
 
-# Fork of niimblue with Imatic GitHub Template Import Feature
+## Fork of niimblue with Imatic GitHub Template Import Feature
 
-This project is a fork of [niimblue](https://github.com/MultiMote/niimblue) with a customized `LabelDesigner.svelte` component and additional features to streamline label template management.
+This project is a fork of [niimblue](https://github.com/MultiMote/niimblue), featuring a customized `LabelDesigner.svelte` component and added functionality to simplify label template management.
 
 ---
 
 ## Features
 
 - **Forked from niimblue** with modifications in `LabelDesigner.svelte`.
-- **Fetches templates dynamically from GitHub** — no more manual downloads and imports.
-- Uses GET parameters from Mantis to fetch template data.
-- Added a new component: `ImaticGithubTemplatePicker.svelte`.
-  - This feature allows importing example label templates directly from a GitHub repository.
-  - Speeds up template setup by eliminating manual file handling.
-- Supports both:
-  - Fetching templates directly from the GitHub repo.
-  - Manual import by downloading `.json` files from the repo if preferred.
-- **New: Push edited templates back to GitHub** directly from the app.
-- **New: Save current template as a new file in the GitHub repository** without leaving the interface.
+- **Dynamically fetch templates from GitHub** — no more manual downloading and importing.
+- Uses GET parameters from Mantis to retrieve template data.
+
 
 ---
 
-## Environment Variables
+## Manual Template Update Workflow
 
-To enable GitHub integration, add the following variables to your `.env` file:
+If you do not want to use the GitHub integration via API, you can follow this manual approach:
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Imatic-IT/niimblue-templates
+   ```
+
+2. **Import the template in the niimblue app**:
+
+   ![Export Template](./public/importTemplate.png)
+
+
+3. **Edit the template** as needed inside the app.
+
+4. **Export the modified template**:
+
+   ![Export Template](./public/exportTemplate.png)
+
+
+5. **Commit and push your updated template back to the repository**:
+    - move the exported template file to the cloned repository:
+   ```bash
+   git add your-updated-template.json
+   git commit -m "Update label template"
+   git push origin master
+   ```
+
+
+
+## Environment Variables (optional)
+
+To enable GitHub API integration for dynamic fetching, you can add the following variables to your `.env` file:
 
 ```env
 VITE_GITHUB_REPO_API_URL=https://api.github.com/repos/Imatic-IT/niimblue-templates/contents/
 VITE_GITHUB_REPO_RAW_URL=https://raw.githubusercontent.com/Imatic-IT/niimblue-templates/master/
 VITE_IMATIC_GITHUB_TOKEN=your_personal_access_token_here
 ```
-
-- The token is optional but **recommended** for higher rate limits and access to public repositories.
-- If you prefer, you can skip the GitHub integration and manually download the `.json` template files from:
-  [https://github.com/Imatic-IT/niimblue-templates](https://github.com/Imatic-IT/niimblue-templates)
-- After editing or creating a template, commit and push the `.json` file back to the repository **directly from the app** or edit it in the browser using:
-  [https://github.dev/Imatic-IT/niimblue-templates](https://github.dev/Imatic-IT/niimblue-templates)
-
----
-
-## Usage
-
-- Start the app and use the **Load Template From GitHub** button.
-- Browse and select a template fetched live from the GitHub repository.
-- The selected template loads into the label designer for editing.
-- After editing, use the **Push to GitHub** button to commit your changes directly back to the repository.
-- Or, use the **Save as New Template** feature to create a new template file in the GitHub repo without overwriting existing ones.
-- - **Note:** Pushing changes to GitHub may take a few moments due to network latency and GitHub's API processing times. Please be patient while the operation completes.
-- Export your customized template locally (see image below) if you want to keep a local backup.
-
-  ![Export Template](./public/exportTemplate.png)
-
-- Alternatively, you can edit and push directly in the browser using GitHub’s web editor here:
-  [https://github.dev/Imatic-IT/niimblue-templates](https://github.dev/Imatic-IT/niimblue-templates)
-
 
 
 # NiimBlue

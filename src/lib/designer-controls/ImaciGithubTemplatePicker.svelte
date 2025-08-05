@@ -93,7 +93,7 @@
   }
 
   const fetchTemplatesFromGithub = async (): Promise<string[]> => {
-    const githubApiUrl = "https://api.github.com/repos/Imatic-IT/niimblue-templates/contents/";
+    const githubApiUrl = `${GITHUB_API_URL}/`;
     isLoadingTemplates = true;
     templatesError = "";
 
@@ -181,6 +181,7 @@
   });
 </script>
 
+
 {#if !isEnvConfigured}
   <div class="alert alert-warning d-flex align-items-center gap-2 mb-0" role="alert">
     <MdIcon icon="warning" class="text-warning" />
@@ -189,76 +190,78 @@
     </div>
   </div>
 {:else}
-  <div class="dropdown position-relative">
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2" on:click={openDropdown}>
-        <MdIcon icon="cloud_download" />
-        <span>Load template From Github</span>
+<div class="dropdown position-relative">
+  <div class="d-flex flex-column gap-2">
+    <!-- Load base template -->
+    <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2" on:click={openDropdown}>
+      <MdIcon icon="cloud_download" />
+      <span>Load base template From Github</span>
+    </button>
+
+    {#if selectedTemplate && !isSavingAsNew}
+      <button
+        class="btn btn-sm btn-primary d-flex align-items-center gap-2"
+        on:click={() => selectedTemplate && pushTemplateToGithub(selectedTemplate, `Updated ${selectedTemplate}`)}>
+        <MdIcon icon="cloud_upload" />
+        <span>Push to GitHub</span>
       </button>
 
-      {#if selectedTemplate && !isSavingAsNew}
-        <button
-          class="btn btn-sm btn-primary d-flex align-items-center gap-2"
-          on:click={() => selectedTemplate && pushTemplateToGithub(selectedTemplate, `Updated ${selectedTemplate}`)}>
-          <MdIcon icon="cloud_upload" />
-          <span>Push to GitHub</span>
-        </button>
+      <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2" on:click={startSaveAsNew}>
+        <MdIcon icon="save_as" />
+        <span>Save as new template</span>
+      </button>
+    {/if}
 
-        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2" on:click={startSaveAsNew}>
-          <MdIcon icon="save_as" />
-          <span>Save as new template</span>
-        </button>
-      {/if}
+    {#if isSavingAsNew}
+      <input
+        type="text"
+        class="form-control form-control-sm"
+        bind:value={newTemplateName}
+        placeholder="New template filename (without .json)"
+        on:keydown={(e) => e.key === "Enter" && confirmSaveAsNew()} />
 
-      {#if isSavingAsNew}
-        <input
-          type="text"
-          class="form-control form-control-sm"
-          bind:value={newTemplateName}
-          placeholder="New template filename (without .json)"
-          on:keydown={(e) => e.key === "Enter" && confirmSaveAsNew()} />
-        <button class="btn btn-sm btn-success" on:click={confirmSaveAsNew}>Save</button>
-        <button class="btn btn-sm btn-secondary" on:click={cancelSaveAsNew}>Cancel</button>
-      {/if}
-    </div>
-
-    {#if isDropdownOpen}
-      <div class="dropdown-menu show saved-labels mt-2" style="display: block;">
-        <h6 class="dropdown-header text-wrap text-white">
-          Import <a href="https://github.com/Imatic-IT/niimblue-templates">Github</a> template
-        </h6>
-
-        <div class="alert alert-warning py-2 px-2 small mb-2 mx-3">
-          This action fetches sample label templates from GitHub for preview and editing purposes.<br /><br />
-
-          <strong>Note:</strong> After saving a template, it may take a few seconds for the changes to appear here due to GitHub's
-          internal processing delay.
-        </div>
-
-        <div class="px-3">
-          {#if isLoading}
-            <div class="text-muted small">
-              <div class="mx-auto text-center">
-                <span class="loader"></span>
-              </div>
-            </div>
-          {:else}
-            {#each templates as template}
-              <button
-                class="btn btn-primary w-100 mb-2 text-start d-flex align-items-center gap-2"
-                on:click={() => {
-                  onTemplateSelected(template);
-                  isDropdownOpen = false;
-                }}>
-                <MdIcon icon="description" />
-                <strong>{template}</strong>
-              </button>
-            {/each}
-          {/if}
-        </div>
-      </div>
+      <button class="btn btn-sm btn-success" on:click={confirmSaveAsNew}>Save</button>
+      <button class="btn btn-sm btn-secondary" on:click={cancelSaveAsNew}>Cancel</button>
     {/if}
   </div>
+
+  {#if isDropdownOpen}
+    <div class="dropdown-menu show saved-labels mt-2" style="display: block;">
+      <h6 class="dropdown-header text-wrap text-white">
+        Import <a href="https://github.com/Imatic-IT/niimblue-templates">Github</a> template
+      </h6>
+
+      <div class="alert alert-warning py-2 px-2 small mb-2 mx-3">
+        This action fetches sample label templates from GitHub for preview and editing purposes.<br /><br />
+        <strong>Note:</strong> After saving a template, it may take a few seconds for the changes to appear here due to GitHub's
+        internal processing delay.
+      </div>
+
+      <div class="px-3">
+        {#if isLoading}
+          <div class="text-muted small">
+            <div class="mx-auto text-center">
+              <span class="loader"></span>
+            </div>
+          </div>
+        {:else}
+          {#each templates as template}
+            <button
+              class="btn btn-primary w-100 mb-2 text-start d-flex align-items-center gap-2"
+              on:click={() => {
+                onTemplateSelected(template);
+                isDropdownOpen = false;
+              }}>
+              <MdIcon icon="description" />
+              <strong>{template}</strong>
+            </button>
+          {/each}
+        {/if}
+      </div>
+    </div>
+  {/if}
+</div>
+
 {/if}
 
 <style>

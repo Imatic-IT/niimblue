@@ -36,6 +36,7 @@
   import { CustomCanvas } from "../fabric-object/custom_canvas";
   import VectorParamsControls from "./designer-controls/VectorParamsControls.svelte";
   import ImaciGithubTemplatePicker from "./designer-controls/ImaciGithubTemplatePicker.svelte";
+  import ImaciTemplateSwitcher from "./designer-controls/ImaciTemplateSwitcher.svelte";
 
   let htmlCanvas: HTMLCanvasElement;
   let fabricCanvas: CustomCanvas;
@@ -48,6 +49,13 @@
   let csvEnabled: boolean = false;
   let windowWidth: number = 0;
   let isLoading = false;
+
+  type MantisData = {
+    templateUrl: string;
+    canPushTemplates?: boolean;
+  };
+
+  let mantisData: MantisData = { templateUrl: "" };
 
   const undo = new UndoRedo();
   let undoState: UndoState = { undoDisabled: false, redoDisabled: false };
@@ -281,6 +289,7 @@
       const json = atob(data);
       const config = JSON.parse(json);
       const templateUrl = config.templateUrl;
+      mantisData = config;
 
       if (templateUrl) {
         isLoading = true;
@@ -518,13 +527,26 @@
     </div>
   </div>
 
-  <div class="card shadow-sm mt-4 mx-auto rounded-4">
-    <div class="card-header bg-dark text-white text-center py-3 rounded-top">
-      <MdIcon icon="bolt" class="me-2" />
-      <strong>Imatic Features</strong>
+  <div class="card shadow-sm mt-5 mx-auto rounded-4 border-0 bg-dark-subtle text-light">
+    <div
+      class="card-header bg-secondary text-white text-center py-3 rounded-top d-flex align-items-center justify-content-center border-bottom">
+      <MdIcon icon="bolt" class="me-2 fs-4 text-warning" />
+      <h6 class="mb-0 fw-semibold text-uppercase">Imatic Label Tools</h6>
     </div>
-    <div class="card-body border p-3 rounded">
-      <ImaciGithubTemplatePicker onRequestLabelTemplate={exportCurrentLabel} {onLoadRequested} />
+
+    <div class="card-body p-4 rounded-bottom">
+      <div class="d-flex gap-3 flex-wrap justify-content-center">
+        {#if mantisData?.canPushTemplates}
+          <div class="">
+            <ImaciGithubTemplatePicker onRequestLabelTemplate={exportCurrentLabel} {onLoadRequested} />
+          </div>
+        {/if}
+        {#if mantisData?.templateUrl}
+          <div class="">
+            <ImaciTemplateSwitcher {onLoadRequested} {mantisData} />
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
 
