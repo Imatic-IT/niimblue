@@ -1,0 +1,18 @@
+services:
+  niimblue:
+    build: .
+    container_name: niimblue
+    ports:
+      - "8080:80"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.niimblue.rule=Host(`niimblue.imaticit-dwebhost01.vs.imatic.cz`)
+      - traefik.http.routers.niimblue.entrypoints=websecure
+      - traefik.http.routers.niimblue.tls.certresolver=myresolver
+    networks:
+      - traefik-network
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network
