@@ -37,6 +37,8 @@
   import VectorParamsControls from "./designer-controls/VectorParamsControls.svelte";
   import ImaciGithubTemplatePicker from "./designer-controls/ImaciGithubTemplatePicker.svelte";
   import ImaciTemplateSwitcher from "./designer-controls/ImaciTemplateSwitcher.svelte";
+  import { fetchTemplateFromGithub } from "../utils/github";
+  import { deepReplacePlaceholders } from "../utils/imatic";
 
   let htmlCanvas: HTMLCanvasElement;
   let fabricCanvas: CustomCanvas;
@@ -52,10 +54,12 @@
 
   type MantisData = {
     templateUrl: string;
+    templateId: string;
     canPushTemplates?: boolean;
+    replacements: Record<string, string>;
   };
 
-  let mantisData: MantisData = { templateUrl: "" };
+  let mantisData: MantisData = { templateUrl: "", templateId: "", replacements: {} };
 
   const undo = new UndoRedo();
   let undoState: UndoState = { undoDisabled: false, redoDisabled: false };
@@ -289,31 +293,24 @@
       const json = atob(data);
       const config = JSON.parse(json);
       const templateUrl = config.templateUrl;
+      const templateId = config.templateId;
       mantisData = config;
 
-      if (templateUrl) {
-        isLoading = true;
+      (async () => {
+        try {
+          const gitTemplate = await fetchTemplateFromGithub(templateId);
+          if (!gitTemplate) {
+            Toasts.error("Failed to load template.");
+            return;
+          }
 
-        fetch(templateUrl, {
-          headers: {
-            Authorization: "Basic " + btoa("niimTemplater:uSLR8SokEqoFYfX"),
-          },
-        })
-          .then((res) => res.json())
-          .then((template) => {
-            try {
-              onLoadRequested(template);
-            } catch (error) {
-              Toasts.error("Failed to load template.");
-            }
-          })
-          .catch((error) => {
-            Toasts.error("Failed to load template: " + error.message);
-          })
-          .finally(() => {
-            isLoading = false;
-          });
-      }
+          const replatecTemplateValues = deepReplacePlaceholders(gitTemplate, mantisData.replacements);
+
+          onLoadRequested(replatecTemplateValues);
+        } catch (e) {
+          Toasts.error("Unexpected error while loading template.");
+        }
+      })();
     }
 
     const defaultTemplate = LocalStoragePersistence.loadDefaultTemplate();
@@ -530,22 +527,15 @@
   <div class="card shadow-sm mt-5 mx-auto rounded-4 border-0 bg-dark-subtle text-light">
     <div
       class="card-header bg-secondary text-white text-center py-3 rounded-top d-flex align-items-center justify-content-center border-bottom">
-      <MdIcon icon="bolt" class="me-2 fs-4 text-warning" />
       <h6 class="mb-0 fw-semibold text-uppercase">Imatic Label Tools</h6>
     </div>
 
     <div class="card-body p-4 rounded-bottom">
       <div class="d-flex gap-3 flex-wrap justify-content-center">
         {#if mantisData?.canPushTemplates}
-          <div class="">
-            <ImaciGithubTemplatePicker onRequestLabelTemplate={exportCurrentLabel} {onLoadRequested} />
-          </div>
+          <ImaciGithubTemplatePicker onRequestLabelTemplate={exportCurrentLabel} {onLoadRequested} />
         {/if}
-        {#if mantisData?.templateUrl}
-          <div class="">
-            <ImaciTemplateSwitcher {onLoadRequested} {mantisData} />
-          </div>
-        {/if}
+        <ImaciTemplateSwitcher {onLoadRequested} {mantisData} />
       </div>
     </div>
   </div>

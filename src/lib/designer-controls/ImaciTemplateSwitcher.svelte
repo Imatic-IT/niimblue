@@ -3,8 +3,10 @@
   import MdIcon from "../basic/MdIcon.svelte";
   import { type ExportedLabelTemplate } from "../../types";
   import { LocalStoragePersistence } from "../../utils/persistence";
+  import { fetchTemplateFromGithub } from "../../utils/github";
+  import { deepReplacePlaceholders } from "../../utils/imatic";
   export let onLoadRequested: (label: ExportedLabelTemplate) => void;
-  export let mantisData: { templateUrl: string };
+  export let mantisData: { templateId: string; replacements: Record<string, string> };
 
   const GITHUB_TOKEN = import.meta.env.VITE_IMATIC_GITHUB_TOKEN;
   const GITHUB_API_URL = import.meta.env.VITE_GITHUB_REPO_API_URL;
@@ -22,8 +24,6 @@
   let templatesError = "";
   let isLoadingTemplateContent = false;
   let templateError = "";
-  let url = new URL(mantisData.templateUrl);
-
   async function openDropdown() {
     isDropdownOpen = true;
     isLoading = true;
@@ -31,7 +31,7 @@
     isLoading = false;
 
     if (!selectedTemplate) {
-      selectedTemplate = url.searchParams.get("templateId") + ".json";
+      selectedTemplate = mantisData.templateId + ".json";
     }
   }
 
@@ -76,16 +76,6 @@
     }
   };
 
-  const fetchTemplate = async (template: string): Promise<ExportedLabelTemplate | undefined> => {
-    url.searchParams.set("templateId", template);
-
-    try {
-      const response = await fetch(url.toString());
-      const data = await response.json();
-      return data;
-    } catch (error) {}
-  };
-
   const onTemplateSelected = async (template: string) => {
     selectedTemplate = template;
     isLoadingTemplateContent = true;
@@ -93,9 +83,10 @@
     const nameWithoutExtension = template.replace(/\.json$/, "");
 
     try {
-      const data = await fetchTemplate(nameWithoutExtension);
+      const data = await fetchTemplateFromGithub(nameWithoutExtension);
       if (data) {
-        onLoadRequested(data);
+        const replatecTemplateValues = deepReplacePlaceholders(data, mantisData.replacements);
+        onLoadRequested(replatecTemplateValues);
       } else {
         templateError = "Template data is undefined.";
       }
